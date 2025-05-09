@@ -7,6 +7,7 @@ services:
       - 443:443
     depends_on:
       - static-webserver
+      - api-server
     build:
       context: reverse-proxy
       dockerfile: Dockerfile
@@ -17,4 +18,23 @@ services:
     build:
       context: static-webserver
       dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
+  
+  api-server:
+    image: api-server:latest
+    container_name: api-server
+    build:
+      context: api-server
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
