@@ -1,0 +1,20 @@
+services:
+  reverse-proxy:
+    image: reverse-proxy:latest
+    container_name: reverse-proxy
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - static-webserver
+    build:
+      context: reverse-proxy
+      dockerfile: Dockerfile
+
+  static-webserver:
+    image: static-webserver:latest
+    container_name: static-webserver
+    build:
+      context: static-webserver
+      dockerfile: Dockerfile
+
