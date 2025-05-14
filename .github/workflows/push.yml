@@ -7,6 +7,11 @@ jobs:
     name: Push Docker image to GitHub Packages
     runs-on: ubuntu-latest
     steps:
+      - name: Set releaase
+        run: |
+          echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+          cat $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -24,7 +29,7 @@ jobs:
           file: api-server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:test
+            ghcr.io/${{ github.actor }}/${{ env.REPO }}api-server:test
 
       # - name: Set releaase
       #   run: |
