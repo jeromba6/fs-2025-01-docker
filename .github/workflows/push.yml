@@ -40,7 +40,7 @@ jobs:
 
       - name: Yaml linting
         run: |
-          python3 -m  yamllint -d relaxed .
+          python3 -m  yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
