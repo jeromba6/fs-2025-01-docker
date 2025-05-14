@@ -32,12 +32,17 @@ jobs:
       - name: Setup pylint
         uses: actions/setup-python@v4
 
-      - name: Run pylint
+      - name: Pylint
         run: |
           pip3 install pylint
           pylint api-server
 
-
+      - name: Yaml linting
+        uses: karancode/yamllint-github-action@master
+        with:
+          yamllint_file_or_dir: '.'
+          yamllint_strict: false
+          yamllint_comment: true
 
       # - name: Yaml linting
       #   uses: github/super-linter@v5
