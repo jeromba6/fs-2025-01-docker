@@ -28,8 +28,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.event.repository.name }}-api-server:test
-            
- 
+
       # - name: Set releaase
       #   run: |
       #     echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
