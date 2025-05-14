@@ -124,7 +124,6 @@ def main():
     log("Stopping application")
     server_socket.close()
     os._exit(1)
-    return
 
 
 def send_response(client_socket, body: str, health: bool) -> None:
@@ -154,8 +153,6 @@ def send_response(client_socket, body: str, health: bool) -> None:
 
     # Close the connection
     client_socket.close()
-
-    return
 
 
 def analyze_request(data: bytes, addr: bytes) -> tuple:
