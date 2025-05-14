@@ -33,7 +33,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push api-server Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: api-server
           file: api-server/Dockerfile
@@ -42,7 +42,7 @@ jobs:
             ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:test
 
       - name: Build and push static-webserver Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: static-webserver
           file: static-webserver/Dockerfile
@@ -51,7 +51,7 @@ jobs:
             ghcr.io/${{ github.actor }}/${{ env.REPO }}/static-webserver:test
 
       - name: Build and push reverse-proxy Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: reverse-proxy
           file: reverse-proxy/Dockerfile
