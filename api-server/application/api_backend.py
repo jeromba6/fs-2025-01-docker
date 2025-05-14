@@ -66,8 +66,8 @@ def main():
         log(f"Got a connection from { addr }")
 
         # Retrun to healthy state if it was sick
-        if not status['healthy'] and 
-            status['healthy_timeout'] and 
+        if not status['healthy'] and \
+            status['healthy_timeout'] and \
             time.time() > status['healthy_timeout']:
                 log("Container is healthy again.")
                 status = {
