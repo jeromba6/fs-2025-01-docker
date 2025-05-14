@@ -184,7 +184,7 @@ def init_variabeles()-> tuple:
     """
 
     # Define the port on which the server will listen
-    port = int(os.getenv('PORT', 5000))
+    port = int(os.getenv('PORT', "5000"))
 
     # Define the file where request count will be stored
     requests_file = os.getenv('REQUESTS_FILE', '/data/requests.txt')
@@ -258,8 +258,4 @@ def now():
 
 
 if __name__ == '__main__':
-    """
-    Main function to start the server.
-    """
-
     main()
