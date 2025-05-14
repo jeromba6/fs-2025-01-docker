@@ -5,6 +5,28 @@ import os
 import datetime
 
 def main():
+    """
+    This module implements a simple HTTP server that listens for incoming connections
+    and processes GET requests. It provides various endpoints to retrieve environment
+    variables, simulate health states, and terminate the container.
+
+    The server listens on a configurable port and logs incoming requests. It also
+    handles specific GET request paths to perform actions such as returning environment
+    variables, changing health states, or shutting down the server.
+
+    Environment Variables:
+    - PORT: The port on which the server listens (default: 5000).
+    - REQUESTS_FILE: Path to the file where request counts are stored (default: /data/requests.txt).
+
+    Endpoints:
+    - `/`: Returns basic container information.
+    - `/env` or `/api/env`: Returns all environment variables.
+    - `/kill` or `/api/kill`: Returns environment variables and terminates the container.
+    - `/health` or `/api/health`: Returns the health status of the container.
+    - `/unhealthy` or `/api/unhealthy`: Sets the container to an unhealthy state, optionally for a specified duration.
+
+    """
+
     # Define the port on which the server will listen
     port = int(os.getenv('PORT', 5000))
     requests_file = os.getenv('REQUESTS_FILE', '/data/requests.txt')
