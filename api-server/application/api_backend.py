@@ -105,7 +105,7 @@ def main():
                 if 'time' in parameters.keys():
                     try:
                         health_timeout = time.time() + int(parameters['time'])
-                        body += f'Sick for {parameters['time']} seconds'
+                        body += f'Sick for {parameters["time"]} seconds'
                     except TypeError:
                         body += 'time was set but not in a valid way'
                         health_timeout = None
