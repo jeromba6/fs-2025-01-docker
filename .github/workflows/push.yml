@@ -35,15 +35,12 @@ jobs:
 
       - name: Pylint
         run: |
-          pip3 install pylint
+          pip3 install pylint yamllint
           pylint api-server
 
       - name: Yaml linting
-        uses: karancode/yamllint-github-action@master
-        with:
-          yamllint_file_or_dir: '.'
-          yamllint_strict: false
-          yamllint_comment: true
+        run: |
+          python3 -m  yamllint -d relaxed .
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
