@@ -1,7 +1,7 @@
 FROM debian
 
 RUN apt update; \
-apt install nginx curl openssl -y; \
+apt-get install nginx curl openssl -y; \
 mkdir -p /etc/nginx/ssl
 
 COPY nginx.conf /etc/nginx/nginx.conf

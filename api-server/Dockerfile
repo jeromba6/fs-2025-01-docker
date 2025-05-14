@@ -1,9 +1,9 @@
 FROM debian
 
-RUN apt update && \
-    apt upgrade -y && \
-    apt install python3 curl -y && \
-    apt clean
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install python3 curl -y && \
+    apt-get clean
 COPY application /
 RUN mkdir /data && \
     useradd -m -s /bin/bash workshop && \
