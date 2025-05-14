@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+api_backend.py
+This module implements a simple HTTP server that listens for incoming connections
+and processes GET requests. It provides various endpoints to retrieve environment
+variables, simulate health states, and terminate the container.
+"""
+
 import socket
 import time
 import os
@@ -135,7 +142,7 @@ def main():
             'Connection': 'close',
         }
 
-        response_headers_raw = ''.join(f'{k}: {V}\r\n' % (k, v) for k, v in response_headers.items())
+        response_headers_raw = ''.join(f'{k}: {V}\r\n' (k, v) for k, v in response_headers.items())
         response_proto = 'HTTP/1.1'
         response_status = '200' if health else '500'
         response_status_text = 'OK' if health else 'Internal server error'
