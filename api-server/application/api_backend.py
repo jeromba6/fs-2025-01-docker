@@ -205,19 +205,19 @@ def init_variabeles()-> tuple:
 
 
 def requests(requests_file:str) -> int:
-    def requests(requests_file: str) -> int:
-        """
-        Increment and track the number of requests in a file.
-        This function checks if the specified file exists. If it does not exist, 
-        it creates the file and initializes it with the value '0'. Then, it reads 
-        the current request count from the file, increments it by one, writes the 
-        updated count back to the file, and returns the new count.
-        Args:
-            requests_file (str): The path to the file used to store the request count.
-        Returns:
-            int: The updated request count after incrementing.
-        """
+    """
+    Increment and track the number of requests in a file.
+    This function checks if the specified file exists. If it does not exist,
+    it creates the file and initializes it with the value '0'. Then, it reads
+    the current request count from the file, increments it by one, writes the
+    updated count back to the file, and returns the new count.
+    Args:
+        requests_file (str): The path to the file used to store the request count.
+    Returns:
+        int: The updated request count after incrementing.
+    """
 
+    # Check if the requests file exists
     if not os.path.exists(requests_file):
         with open(requests_file, 'w') as f:
             f.write('0')
