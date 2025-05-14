@@ -73,29 +73,6 @@ def main():
         data = client_socket.recv(1024)
         method, request, source = analyze_request(data, addr)
 
-
-        # data_lines = data.decode('ascii').split('\n')
-        # get_request = None
-        # source_ip = None
-        # for line in data_lines:
-        #     if line.startswith('GET '):
-        #         if '?' in line:
-        #             parameters = line.split(' ')[1].split('?')[1].split('&')
-        #             parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
-        #         else:
-        #             parameters = None
-        #         get_request = line.split(' ')[1].split('?')[0]
-        #         get_request_path = get_request.split('/')
-        #         get_request_path = [x for x in get_request_path if x]
-        #     if line.startswith('X-Forwarded-For: ') and not source_ip:
-        #         source_ip = line.split(' ')[1]
-        #     if line.startswith('X-Real-IP: '):
-        #         source_ip = line.split(' ')[1]
-
-        # if not source_ip:
-        #     source_ip = str(addr[0])
-        # source_port = str(addr[1])
-
         log(f"Received data from client:\n{data.decode('ascii')}\n")
 
         body =  f"Time in container: {str(time.ctime())}\n"
