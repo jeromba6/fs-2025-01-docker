@@ -71,7 +71,7 @@ def main():
 
         # Data received from client
         data = client_socket.recv(1024)
-        method, request, source = analyze_request(data, addr)
+        method, request, parameters, source = analyze_request(data, addr)
 
         log(f"Received data from client:\n{data.decode('ascii')}\n")
 
@@ -174,7 +174,7 @@ def analyze_request(data: bytes, addr: bytes) -> tuple:
     source_port = str(addr[1])
     source = {'ip': source_ip, 'port': source_port}
 
-    return method, request, source
+    return method, request, parameters, source
 
 
 def init_variabeles()-> tuple:
