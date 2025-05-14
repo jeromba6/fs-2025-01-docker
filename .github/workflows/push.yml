@@ -9,8 +9,8 @@ jobs:
     steps:
       - name: Set releaase
         run: |
-          echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-          cat $GITHUB_ENV
+          echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_STATE
+          cat $GITHUB_STATE
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
           file: api-server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/${{ env.REPO }}:test
+            ghcr.io/${{ github.actor }}/${{ state.REPO }}/api-server:test
 
       # - name: Set releaase
       #   run: |
