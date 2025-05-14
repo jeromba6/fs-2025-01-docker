@@ -20,7 +20,7 @@ jobs:
       - name: Build and push api-server Docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: api-server
           file: api-server/Dockerfile
           push: true
           tags: |
