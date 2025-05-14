@@ -4,6 +4,8 @@ on:
     branches:
       - '*'
       - '!main'
+        paths:
+          - '**'
       - '!master'
 jobs:
   push_to_registry:
