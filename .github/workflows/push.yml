@@ -26,6 +26,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Yaml linting
+        uses: github/super-linter@v5
+        with:
+          linter: 'yaml'
+          run_linter: true
+          fail_on_error: true
+          fail_on_warning: false
+          config_file: .github/linter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -105,5 +116,9 @@ jobs:
           echo "Running tests..."
           # Add your test commands here
           # For example, you can use curl to check if the services are up and running
+          echo "Testing reverse-proxy..."
           curl -f https://localhost/health -k || exit 1
+          echo "Testing api-server..."
           curl -f https://localhost/api/health -k || exit 1
+          echo "Testing static-webserver..."
+          curl -f https://localhost -k || exit 1
