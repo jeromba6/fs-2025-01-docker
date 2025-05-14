@@ -219,12 +219,14 @@ def request_counter(requests_file:str) -> int:
 
     # Check if the requests file exists
     if not os.path.exists(requests_file):
-        with open(requests_file, 'w') as f:
-            f.write('0')
-    with open(requests_file, 'r') as f:
+        with open(requests_file, 'w', encoding='UTF-8') as f:
+            f.write('1')
+        return 1
+
+    with open(requests_file, 'r', encoding='UTF-8') as f:
         requests = int(f.read())
     requests += 1
-    with open(requests_file, 'w') as f:
+    with open(requests_file, 'w', encoding='UTF-8') as f:
         f.write(str(requests))
     return requests
 
