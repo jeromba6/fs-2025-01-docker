@@ -77,7 +77,7 @@ def main():
 
         body =  f"Time in container: {str(time.ctime())}\n"
         body += f"Container start time: {container_start_time}\n"
-        body += f"Requests received: {requests(requests_file)}\n"
+        body += f"Requests received: {request_counter(requests_file)}\n"
         body += f"Hostname: {host}\n"
         body += f"Container port: {port}\n"
         body += f"Client source ip: {source['ip']}\n"
@@ -204,7 +204,7 @@ def init_variabeles()-> tuple:
 
 
 
-def requests(requests_file:str) -> int:
+def request_counter(requests_file:str) -> int:
     """
     Increment and track the number of requests in a file.
     This function checks if the specified file exists. If it does not exist,
