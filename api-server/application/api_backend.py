@@ -23,31 +23,21 @@ def main():
     - `/env` or `/api/env`: Returns all environment variables.
     - `/kill` or `/api/kill`: Returns environment variables and terminates the container.
     - `/health` or `/api/health`: Returns the health status of the container.
-    - `/unhealthy` or `/api/unhealthy`: Sets the container to an unhealthy state, optionally for a specified duration.
-
+    - `/unhealthy` or `/api/unhealthy`: Sets the container to an unhealthy state, optionally for a
+      specified duration.
     """
 
     # Define the port on which the server will listen
-    port = int(os.getenv('PORT', 5000))
-    requests_file = os.getenv('REQUESTS_FILE', '/data/requests.txt')
-    envs = []
-    cm_vars = []
-    for name, value in os.environ.items():
-        envs.append({'name': name, 'value': value})
-        if name.startswith('CM_VAR_'):
-            cm_vars.append({'name': name, 'value': value})
+    port, requests_file, envs, host = init_variabeles()
 
-    # Sort the CM_VAR_ vars by name
-    envs = sorted(envs, key=lambda x: x['name'])
-    cm_vars = sorted(cm_vars, key=lambda x: x['name'])
+    # Set the timeout for the health check
+    health_timeout = None
     kill = False
     container_start_time = time.ctime()
 
     # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # Get the hostname of the server
-    host = socket.gethostname()
 
     # Bind the socket to the host and port
     server_socket.bind(("0.0.0.0", port))
@@ -164,6 +154,33 @@ def main():
     log("Stopping application")
     server_socket.close()
     os._exit(1)
+
+
+def init_variabeles()-> tuple:
+    """
+    Initialize variables from environment variables.
+    :return: tuple containing port, requests_file and envs
+    """
+
+    # Define the port on which the server will listen
+    port = int(os.getenv('PORT', 5000))
+
+    # Define the file where request count will be stored
+    requests_file = os.getenv('REQUESTS_FILE', '/data/requests.txt')
+
+    # Get all environment variables
+    envs = []
+    for name, value in os.environ.items():
+        envs.append({'name': name, 'value': value})
+
+    # Sort the environment vars by name
+    envs = sorted(envs, key=lambda x: x['name'])
+
+    # Get the hostname of the container
+    host = socket.gethostname()
+
+    return port, requests_file, envs, host
+
 
 
 def requests(requests_file:str) -> int:
