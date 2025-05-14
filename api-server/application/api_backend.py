@@ -71,7 +71,7 @@ def main():
 
         # Data received from client
         data = client_socket.recv(1024)
-        method, request, parameters, source = analyze_request(data, addr)
+        method, uri, parameters, source = analyze_request(data, addr)
 
         log(f"Received data from client:\n{data.decode('ascii')}\n")
 
@@ -82,22 +82,18 @@ def main():
         body += f"Container port: {port}\n"
         body += f"Client source ip: {source['ip']}\n"
         body += f"Client source port: {source['port']}\n"
-        body += f"URI: {request}\n"
+        body += f"URI: {uri}\n"
         body += f"Method: {method}\n"
         body += f"Health: {health}\n"
         body += "\n"
 
-        match request.split('/'):
+        match uri.split('/'):
             case ['']:
                 body += "No GET request path provided\n"
             case ['env'] | ['api', 'env']:
                 body += "Environment variables:\n"
-                for env in envs:
-                    body += f"{env['name']}: {env['value']}\n"
+                body += envs
             case ['api', 'kill'] | ['kill']:
-                body += "Environment variables:\n"
-                for env in envs:
-                    body += f"{env['name']}: {env['value']}\n"
                 body += "\n!!! THIS CONTAINER WILL BE KILLED !!!\n"
                 kill = True
             case ['api', 'health'] | ['health']:
@@ -108,9 +104,8 @@ def main():
                 health = False
                 if 'time' in parameters.keys():
                     try:
-                        duration = int(parameters['time'])
-                        health_timeout = time.time() + duration
-                        body += f'Sick for {duration} seconds'
+                        health_timeout = time.time() + int(parameters['time'])
+                        body += f'Sick for {parameters['time']} seconds'
                     except TypeError:
                         body += 'time was set but not in a valid way'
                         health_timeout = None
@@ -206,11 +201,15 @@ def init_variabeles()-> tuple:
 
     # Sort the environment vars by name
     envs = sorted(envs, key=lambda x: x['name'])
+    return_env = ""
+
+    for env in envs:
+        return_env += f"{env['name']}: {env['value']}\n"
 
     # Get the hostname of the container
     host = socket.gethostname()
 
-    return port, requests_file, envs, host
+    return port, requests_file, return_env, host
 
 
 
