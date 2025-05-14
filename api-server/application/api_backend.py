@@ -47,14 +47,14 @@ def main():
 
     health = True
 
-    log(f"Container is listening on port { port}")
+    log(f"Container is listening on port { port }")
 
     while True:
         # Establish connection with client
         client_socket, addr = server_socket.accept()
 
         # Connection received from client
-        log("Got a connection from %s" % str(addr))
+        log(f"Got a connection from { addr }")
 
         # Retrun to healthy state if it was sick
         if not health and health_timeout and time.time() > health_timeout:
@@ -73,7 +73,7 @@ def main():
                     parameters = line.split(' ')[1].split('?')[1].split('&')
                     parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
                 else:
-                    parmeters = None
+                    parameters = None
                 get_request = line.split(' ')[1].split('?')[0]
                 get_request_path = get_request.split('/')
                 get_request_path = [x for x in get_request_path if x]
@@ -122,7 +122,7 @@ def main():
                         duration = int(parameters['time'])
                         health_timeout = time.time() + duration
                         body += f'Sick for {duration} seconds'
-                    except:
+                    except TypeError:
                         body += 'time was set but not in a valid way'
                         health_timeout = None
                 else:
@@ -135,7 +135,7 @@ def main():
             'Connection': 'close',
         }
 
-        response_headers_raw = ''.join('%s: %s\r\n' % (k, v) for k, v in response_headers.items())
+        response_headers_raw = ''.join(f'{k}: {V}\r\n' % (k, v) for k, v in response_headers.items())
         response_proto = 'HTTP/1.1'
         response_status = '200' if health else '500'
         response_status_text = 'OK' if health else 'Internal server error'
@@ -184,6 +184,19 @@ def init_variabeles()-> tuple:
 
 
 def requests(requests_file:str) -> int:
+    def requests(requests_file: str) -> int:
+        """
+        Increment and track the number of requests in a file.
+        This function checks if the specified file exists. If it does not exist, 
+        it creates the file and initializes it with the value '0'. Then, it reads 
+        the current request count from the file, increments it by one, writes the 
+        updated count back to the file, and returns the new count.
+        Args:
+            requests_file (str): The path to the file used to store the request count.
+        Returns:
+            int: The updated request count after incrementing.
+        """
+
     if not os.path.exists(requests_file):
         with open(requests_file, 'w') as f:
             f.write('0')
@@ -196,6 +209,11 @@ def requests(requests_file:str) -> int:
 
 
 def log(msg):
+    """
+    Log a message with a timestamp.
+    :param msg: The message to log.
+    """
+
     # Remove empty lines
     msg = msg.strip()
     ts = now()
@@ -208,8 +226,17 @@ def log(msg):
 
 
 def now():
+    """
+    Get the current date and time in a specific format.
+    :return: Current date and time as a string.
+    """
+
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 if __name__ == '__main__':
+    """
+    Main function to start the server.
+    """
+
     main()
