@@ -117,32 +117,44 @@ def main():
                 else:
                     health_timeout = None
 
+        send_response(client_socket, body, health)
 
-        response_headers = {
-            'Content-Type': 'text/text; encoding=utf8',
-            'Content-Length': len(body),
-            'Connection': 'close',
-        }
-
-        response_headers_raw = ''.join(f'{k}: {v}\r\n' for k, v in response_headers.items())
-        response_proto = 'HTTP/1.1'
-        response_status = '200' if health else '500'
-        response_status_text = 'OK' if health else 'Internal server error'
-
-        # sending all this stuff
-        response = f"{response_proto} {response_status} {response_status_text}\r\n"
-        client_socket.sendall(response.encode())
-        client_socket.sendall(response_headers_raw.encode())
-        client_socket.sendall(b'\r\n') # to separate headers from body
-        client_socket.send(body.encode(encoding="utf-8"))
-
-        # Close the connection
-        client_socket.close()
         if kill:
             break
     log("Stopping application")
     server_socket.close()
     os._exit(1)
+
+
+def send_response(client_socket, body: str, health: bool) -> None:
+    """
+    Send an HTTP response to the client.
+    :param client_socket: The socket object for the client connection.
+    :param body: The body of the HTTP response.
+    :param health: The health status of the container.
+    """
+    response_headers = {
+        'Content-Type': 'text/text; encoding=utf8',
+        'Content-Length': len(body),
+        'Connection': 'close',
+    }
+
+    response_headers_raw = ''.join(f'{k}: {v}\r\n' for k, v in response_headers.items())
+    response_proto = 'HTTP/1.1'
+    response_status = '200' if health else '500'
+    response_status_text = 'OK' if health else 'Internal server error'
+
+    # sending all this stuff
+    response = f"{response_proto} {response_status} {response_status_text}\r\n"
+    client_socket.sendall(response.encode())
+    client_socket.sendall(response_headers_raw.encode())
+    client_socket.sendall(b'\r\n') # to separate headers from body
+    client_socket.send(body.encode(encoding="utf-8"))
+
+    # Close the connection
+    client_socket.close()
+
+    return
 
 
 def analyze_request(data: bytes, addr: bytes) -> tuple:
