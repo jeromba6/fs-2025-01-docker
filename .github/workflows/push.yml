@@ -29,7 +29,7 @@ jobs:
           file: api-server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:test
+            ghcr.io/${{ github.actor }}/${{ env.REPO }}/${{ env.REPO }}:test
 
       # - name: Set releaase
       #   run: |
