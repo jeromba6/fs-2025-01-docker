@@ -93,17 +93,6 @@ Client source port: {source['port']}
 URI: {uri}
 Method: {method}
 Health: {status['healthy']}"""
-        # body =  f"Time in container: {str(time.ctime())}\n"
-        # body += f"Container start time: {status['container_start_time']}\n"
-        # body += f"Requests received: {request_counter(requests_file)}\n"
-        # body += f"Hostname: {host}\n"
-        # body += f"Container port: {port}\n"
-        # body += f"Client source ip: {source['ip']}\n"
-        # body += f"Client source port: {source['port']}\n"
-        # body += f"URI: {uri}\n"
-        # body += f"Method: {method}\n"
-        # body += f"Health: {status['healthy']}\n"
-        # body += "\n"
 
         match uri.split('/'):
             case ['']:
@@ -130,7 +119,7 @@ Health: {status['healthy']}"""
                 else:
                     status['healthy_timeout'] = None
 
-        send_response(client_socket, body, status['healthy_timeout'])
+        send_response(client_socket, body, status['healthy'])
 
         if status['kill']:
             break
