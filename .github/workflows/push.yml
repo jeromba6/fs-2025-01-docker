@@ -59,3 +59,50 @@ jobs:
           tags: |
             ghcr.io/${{ github.actor }}/${{ env.REPO }}/reverse-proxy:test
 
+      - name: Test image
+        run: |
+          export VERSION=test
+          docker compose -f compose.yml up -d
+
+      - name: Wait for containers to be healthy
+        run: |
+          echo "Waiting for containers to be healthy..."
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' reverse-proxy | grep -q '"healthy"'; then
+              echo "reverse-proxy is healthy"
+              break
+            fi
+            sleep 5
+          done
+
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' static-webserver | grep -q '"healthy"'; then
+              echo "static-webserver is healthy"
+              break
+            fi
+            sleep 5
+          done
+
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' api-server1 | grep -q '"healthy"'; then
+              echo "api-server1 is healthy"
+              break
+            fi
+            sleep 5
+          done
+
+          for i in {1..10}; do
+            if docker inspect --format='{{json .State.Health.Status}}' api-server2 | grep -q '"healthy"'; then
+              echo "api-server2 is healthy"
+              break
+            fi
+            sleep 5
+          done
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # Add your test commands here
+          # For example, you can use curl to check if the services are up and running
+          curl -f https://localhost/health || exit 1
+          curl -f https://localhost/api/health || exit 1
+          
