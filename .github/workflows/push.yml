@@ -20,6 +20,7 @@ jobs:
       - name: Set releaase
         run: |
           echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
           cat $GITHUB_ENV
 
       - name: Checkout code
@@ -39,7 +40,7 @@ jobs:
           file: api-server/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:test
+            ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:${{ env.RELEASE_VERSION }}
 
       - name: Build and push static-webserver Docker image
         uses: docker/build-push-action@v3
@@ -48,7 +49,7 @@ jobs:
           file: static-webserver/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/static-webserver:test
+            ghcr.io/${{ github.actor }}/${{ env.REPO }}/static-webserver:${{ env.RELEASE_VERSION }}
 
       - name: Build and push reverse-proxy Docker image
         uses: docker/build-push-action@v3
@@ -57,11 +58,11 @@ jobs:
           file: reverse-proxy/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/reverse-proxy:test
+            ghcr.io/${{ github.actor }}/${{ env.REPO }}/reverse-proxy:${{ env.RELEASE_VERSION }}
 
       - name: Test image
         run: |
-          export VERSION=test
+          export VERSION=${{ env.RELEASE_VERSION }}
           docker compose -f compose.yml up -d
 
       - name: Wait for containers to be healthy
@@ -98,6 +99,7 @@ jobs:
             fi
             sleep 5
           done
+
       - name: Run tests
         run: |
           echo "Running tests..."
@@ -105,4 +107,3 @@ jobs:
           # For example, you can use curl to check if the services are up and running
           curl -f https://localhost/health -k || exit 1
           curl -f https://localhost/api/health -k || exit 1
-          
