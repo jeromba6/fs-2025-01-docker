@@ -71,27 +71,30 @@ def main():
 
         # Data received from client
         data = client_socket.recv(1024)
-        data_lines = data.decode('ascii').split('\n')
-        get_request = None
-        source_ip = None
-        for line in data_lines:
-            if line.startswith('GET '):
-                if '?' in line:
-                    parameters = line.split(' ')[1].split('?')[1].split('&')
-                    parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
-                else:
-                    parameters = None
-                get_request = line.split(' ')[1].split('?')[0]
-                get_request_path = get_request.split('/')
-                get_request_path = [x for x in get_request_path if x]
-            if line.startswith('X-Forwarded-For: ') and not source_ip:
-                source_ip = line.split(' ')[1]
-            if line.startswith('X-Real-IP: '):
-                source_ip = line.split(' ')[1]
+        method, request, source = analyze_request(data, addr)
 
-        if not source_ip:
-            source_ip = str(addr[0])
-        source_port = str(addr[1])
+
+        # data_lines = data.decode('ascii').split('\n')
+        # get_request = None
+        # source_ip = None
+        # for line in data_lines:
+        #     if line.startswith('GET '):
+        #         if '?' in line:
+        #             parameters = line.split(' ')[1].split('?')[1].split('&')
+        #             parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
+        #         else:
+        #             parameters = None
+        #         get_request = line.split(' ')[1].split('?')[0]
+        #         get_request_path = get_request.split('/')
+        #         get_request_path = [x for x in get_request_path if x]
+        #     if line.startswith('X-Forwarded-For: ') and not source_ip:
+        #         source_ip = line.split(' ')[1]
+        #     if line.startswith('X-Real-IP: '):
+        #         source_ip = line.split(' ')[1]
+
+        # if not source_ip:
+        #     source_ip = str(addr[0])
+        # source_port = str(addr[1])
 
         log(f"Received data from client:\n{data.decode('ascii')}\n")
 
@@ -100,12 +103,14 @@ def main():
         body += f"Requests received: {requests(requests_file)}\n"
         body += f"Hostname: {host}\n"
         body += f"Container port: {port}\n"
-        body += f"Client source ip: {source_ip}\n"
-        body += f"Client source port: {source_port}\n"
-        body += f"GET request: {get_request}\n"
+        body += f"Client source ip: {source['ip']}\n"
+        body += f"Client source port: {source['port']}\n"
+        body += f"URI: {request}\n"
+        body += f"Method: {method}\n"
+        body += f"Health: {health}\n"
         body += "\n"
 
-        match get_request_path:
+        match request.split('/'):
             case ['']:
                 body += "No GET request path provided\n"
             case ['env'] | ['api', 'env']:
@@ -142,7 +147,7 @@ def main():
             'Connection': 'close',
         }
 
-        response_headers_raw = ''.join(f'{k}: {V}\r\n' (k, v) for k, v in response_headers.items())
+        response_headers_raw = ''.join(f'{k}: {v}\r\n' for k, v in response_headers.items())
         response_proto = 'HTTP/1.1'
         response_status = '200' if health else '500'
         response_status_text = 'OK' if health else 'Internal server error'
@@ -161,6 +166,38 @@ def main():
     log("Stopping application")
     server_socket.close()
     os._exit(1)
+
+
+def analyze_request(data: bytes, addr: bytes) -> tuple:
+    """
+    Analyze the incoming request data and extract relevant information.
+    :param data: The incoming request data as bytes.
+    :return: A tuple containing the HTTP method, request path, and source IP address.
+    """
+
+    # Decode the incoming data to ASCII
+    data_lines = data.decode('ascii').split('\n')
+    source_ip = None
+    method, request, *_ = data_lines[0].split(' ')
+
+    if '?' in request:
+        parameters = request.split('?')[1].split('&')
+        parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
+        request = request.split('?')[0]
+    else:
+        parameters = None
+    for line in data_lines[1:]:
+        if line.startswith('X-Forwarded-For: ') and not source_ip:
+            source_ip = line.split(' ')[1]
+        if line.startswith('X-Real-IP: '):
+            source_ip = line.split(' ')[1]
+
+    if not source_ip:
+        source_ip = str(addr[0])
+    source_port = str(addr[1])
+    source = {'ip': source_ip, 'port': source_port}
+
+    return method, request, source
 
 
 def init_variabeles()-> tuple:
