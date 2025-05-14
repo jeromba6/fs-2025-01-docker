@@ -1,14 +1,14 @@
-FROM python:3.13.1-slim-bookworm
+FROM debian
 
-COPY application /
 RUN apt update && \
     apt upgrade -y && \
-    apt install curl -y && \
-    apt clean && \
-    mkdir /data && \
+    apt install python3 curl -y && \
+    apt clean
+COPY application /
+RUN mkdir /data && \
     useradd -m -s /bin/bash workshop && \
     chown -R workshop:workshop /data
 
 USER workshop
 
-CMD [ "python", "-u", "/api-backend.py" ]
+CMD [ "python3", "-u", "/api-backend.py" ]

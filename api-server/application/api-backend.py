@@ -44,6 +44,12 @@ def main():
         # Connection received from client
         log("Got a connection from %s" % str(addr))
 
+        # Retrun to healthy state if it was sick
+        if not health and health_timeout and time.time() > health_timeout:
+            log("Container is healthy again.")
+            health = True
+            health_timeout = None
+
         # Data received from client
         data = client_socket.recv(1024)
         data_lines = data.decode('ascii').split('\n')
@@ -51,6 +57,11 @@ def main():
         source_ip = None
         for line in data_lines:
             if line.startswith('GET '):
+                if '?' in line:
+                    parameters = line.split(' ')[1].split('?')[1].split('&')
+                    parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
+                else:
+                    parmeters = None
                 get_request = line.split(' ')[1].split('?')[0]
                 get_request_path = get_request.split('/')
                 get_request_path = [x for x in get_request_path if x]
@@ -90,9 +101,21 @@ def main():
                 kill = True
             case ['api', 'health'] | ['health']:
                 body = '{status: "ok"}' if health else '{status: "sick"}'
+                log(body)
             case ['api', 'unhealthy'] | ['unhealthy']:
                 body += 'Change state to unhealty'
                 health = False
+                if 'time' in parameters.keys():
+                    try:
+                        duration = int(parameters['time'])
+                        health_timeout = time.time() + duration
+                        body += f'Sick for {duration} seconds'
+                    except:
+                        body += 'time was set but not in a valid way'
+                        health_timeout = None
+                else:
+                    health_timeout = None
+
 
         response_headers = {
             'Content-Type': 'text/text; encoding=utf8',
@@ -134,7 +157,15 @@ def requests(requests_file:str) -> int:
 
 
 def log(msg):
-    print(f'{now()} {msg}')
+    # Remove empty lines
+    msg = msg.strip()
+    ts = now()
+    spaces = ' ' * (len(ts) + 3)
+    # When new line in msg add spaces to the beginning of each line after the first
+    if '\n' in msg:
+        msg = '\n'.join([msg.split('\n')[0]] + [spaces + x for x in msg.split('\n')[1:]])
+    # Add timestamp to the message
+    print(f'{ts} - {msg}')
 
 
 def now():

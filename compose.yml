@@ -7,10 +7,17 @@ services:
       - 443:443
     depends_on:
       - static-webserver
-      - api-server
+      - api-server1
+      - api-server2
     build:
       context: reverse-proxy
       dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/health", "-k"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   static-webserver:
     image: static-webserver:latest
@@ -19,22 +26,36 @@ services:
       context: static-webserver
       dockerfile: Dockerfile
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 2
-      start_period: 5s
-  
-  api-server:
-    image: api-server:latest
-    container_name: api-server
-    build:
-      context: api-server
-      dockerfile: Dockerfile
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 10s
       timeout: 5s
       retries: 2
       start_period: 5s
 
+  api-server1:
+    image: api-server:latest
+    container_name: api-server1
+    build:
+      context: api-server
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
+    environment:
+      PORT: 5001
+
+  api-server2:
+    image: api-server:latest
+    container_name: api-server2
+    # No build context specified, using the same image as api-server1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
+    environment:
+      PORT: 5002
