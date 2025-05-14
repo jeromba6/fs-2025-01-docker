@@ -38,9 +38,13 @@ def main():
     port, requests_file, envs, host = init_variabeles()
 
     # Set the timeout for the health check
-    health_timeout = None
-    kill = False
-    container_start_time = time.ctime()
+    status = {'healthy': True,
+              'healthy_timeout': None,
+              'kill': False,
+              'container_start_time': time.ctime()}
+    # health_timeout = None
+    # kill = False
+    # container_start_time = time.ctime()
 
     # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,8 +56,6 @@ def main():
     # Listen for incoming connections
     server_socket.listen(5)
 
-    health = True
-
     log(f"Container is listening on port { port }")
 
     while True:
@@ -64,10 +66,14 @@ def main():
         log(f"Got a connection from { addr }")
 
         # Retrun to healthy state if it was sick
-        if not health and health_timeout and time.time() > health_timeout:
+        if not status['healthy'] and status['healthy_timeout'] and time.time() > status['healthy_timeout']:
             log("Container is healthy again.")
-            health = True
-            health_timeout = None
+            status = {
+                'healthy': True,
+                'healthy_timeout': None,
+                'kill': False,
+                'container_start_time': status['container_start_time']
+            }
 
         # Data received from client
         data = client_socket.recv(1024)
@@ -76,7 +82,7 @@ def main():
         log(f"Received data from client:\n{data.decode('ascii')}\n")
 
         body =  f"Time in container: {str(time.ctime())}\n"
-        body += f"Container start time: {container_start_time}\n"
+        body += f"Container start time: {status['container_start_time']}\n"
         body += f"Requests received: {request_counter(requests_file)}\n"
         body += f"Hostname: {host}\n"
         body += f"Container port: {port}\n"
@@ -84,7 +90,7 @@ def main():
         body += f"Client source port: {source['port']}\n"
         body += f"URI: {uri}\n"
         body += f"Method: {method}\n"
-        body += f"Health: {health}\n"
+        body += f"Health: {status['healthy']}\n"
         body += "\n"
 
         match uri.split('/'):
@@ -97,22 +103,22 @@ def main():
                 body += "\n!!! THIS CONTAINER WILL BE KILLED !!!\n"
                 kill = True
             case ['api', 'health'] | ['health']:
-                body = '{status: "ok"}' if health else '{status: "sick"}'
+                body = '{status: "ok"}' if status['healthy'] else '{status: "sick"}'
                 log(body)
             case ['api', 'unhealthy'] | ['unhealthy']:
                 body += 'Change state to unhealty'
-                health = False
+                status['healthy'] = False
                 if 'time' in parameters.keys():
                     try:
-                        health_timeout = time.time() + int(parameters['time'])
+                        status['healthy_timeout'] = time.time() + int(parameters['time'])
                         body += f'Sick for {parameters["time"]} seconds'
                     except TypeError:
                         body += 'time was set but not in a valid way'
-                        health_timeout = None
+                        status['healthy_timeout'] = None
                 else:
-                    health_timeout = None
+                    status['healthy_timeout'] = None
 
-        send_response(client_socket, body, health)
+        send_response(client_socket, body, status['healthy_timeout'])
 
         if kill:
             break
