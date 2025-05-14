@@ -124,6 +124,7 @@ def main():
     log("Stopping application")
     server_socket.close()
     os._exit(1)
+    return
 
 
 def send_response(client_socket, body: str, health: bool) -> None:
