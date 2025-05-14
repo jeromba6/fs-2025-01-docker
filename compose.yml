@@ -1,3 +1,4 @@
+---
 services:
   reverse-proxy:
     image: ghcr.io/jeromba6/fs-2025-01-docker/reverse-proxy:${VERSION}
