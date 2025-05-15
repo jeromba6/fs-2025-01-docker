@@ -45,7 +45,10 @@ jobs:
       - name: Docker linting
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: Dockerfile
+          dockerfile: 
+            - api-server/Dockerfile
+            - static-webserver/Dockerfile
+            - reverse-proxy/Dockerfile
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
