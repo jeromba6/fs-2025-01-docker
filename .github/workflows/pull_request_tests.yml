@@ -19,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.12]
+        python-version: [3.11]
+
     steps:
       - name: Set releaase
         run: |
@@ -41,6 +42,26 @@ jobs:
       - name: Yaml linting
         run: |
           python3 -m  yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
+
+      - name: Dockerfile linting api-server
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: api-server/Dockerfile
+
+      - name: Dockerfile linting reverse-proxy
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: reverse-proxy/Dockerfile
+
+      - name: Dockerfile linting static-webserver
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: static-webserver/Dockerfile
+
+      - name: Docker compose linting
+        uses: sjafferali/docker-compose-lint-action@v0.1.2
+        with:
+          compose-file: './compose.yml'
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
