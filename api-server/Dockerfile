@@ -2,7 +2,7 @@ FROM debian:12.10
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install python3.11-minimal/stable curl/stable -y --no-install-recommends && \
+    apt-get install python curl/stable -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 COPY application /
