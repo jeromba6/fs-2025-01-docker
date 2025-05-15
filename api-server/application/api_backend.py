@@ -90,15 +90,14 @@ Hostname: {host}
 Container port: {port}
 Client source ip: {source['ip']}
 Client source port: {source['port']}
-URI: {uri}
+URI: /{uri}
 Method: {method}
 Health: {status['healthy']}"""
-
         match uri.split('/'):
             case ['']:
                 body += "No GET request path provided\n"
             case ['env'] | ['api', 'env']:
-                body += "Environment variables:\n"
+                body += "\n\nEnvironment variables:\n"
                 body += envs
             case ['api', 'kill'] | ['kill']:
                 body += "\n!!! THIS CONTAINER WILL BE KILLED !!!\n"
@@ -167,12 +166,13 @@ def analyze_request(data: bytes, addr: bytes) -> tuple:
     # Decode the incoming data to ASCII
     data_lines = data.decode('ascii').split('\n')
     source_ip = None
-    method, request, *_ = data_lines[0].split(' ')
+    method, uri, *_ = data_lines[0].split(' ')
+    uri = uri[1:]  # Remove leading '/'
 
-    if '?' in request:
-        parameters = request.split('?')[1].split('&')
+    if '?' in uri:
+        parameters = uri.split('?')[1].split('&')
         parameters = {x.split('=')[0]: x.split('=')[1] for x in parameters}
-        request = request.split('?')[0]
+        uri = uri.split('?')[0]
     else:
         parameters = None
     for line in data_lines[1:]:
@@ -186,7 +186,7 @@ def analyze_request(data: bytes, addr: bytes) -> tuple:
     source_port = str(addr[1])
     source = {'ip': source_ip, 'port': source_port}
 
-    return method, request, parameters, source
+    return method, uri, parameters, source
 
 
 def init_variabeles()-> tuple:
