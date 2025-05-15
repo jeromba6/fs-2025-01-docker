@@ -42,9 +42,6 @@ def main():
               'healthy_timeout': None,
               'kill': False,
               'container_start_time': time.ctime()}
-    # health_timeout = None
-    # kill = False
-    # container_start_time = time.ctime()
 
     # Create a socket object
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
