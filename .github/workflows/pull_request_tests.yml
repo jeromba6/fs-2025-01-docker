@@ -58,6 +58,10 @@ jobs:
         with:
           dockerfile: static-webserver/Dockerfile
 
+      - name: Docker compose linting
+        uses: docker/compose-action@v2
+        with:
+          compose-file: compose.yml
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
