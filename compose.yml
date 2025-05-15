@@ -1,6 +1,7 @@
+---
 services:
   reverse-proxy:
-    image: reverse-proxy:latest
+    image: ghcr.io/jeromba6/fs-2025-01-docker/reverse-proxy:${VERSION}
     container_name: reverse-proxy
     ports:
       - 80:80
@@ -20,7 +21,7 @@ services:
       start_period: 5s
 
   static-webserver:
-    image: static-webserver:latest
+    image: ghcr.io/jeromba6/fs-2025-01-docker/static-webserver:${VERSION}
     container_name: static-webserver
     build:
       context: static-webserver
@@ -33,7 +34,7 @@ services:
       start_period: 5s
 
   api-server1:
-    image: api-server:latest
+    image: ghcr.io/jeromba6/fs-2025-01-docker/api-server:${VERSION}
     container_name: api-server1
     build:
       context: api-server
@@ -48,7 +49,7 @@ services:
       PORT: 5001
 
   api-server2:
-    image: api-server:latest
+    image: ghcr.io/jeromba6/fs-2025-01-docker/api-server:${VERSION}
     container_name: api-server2
     # No build context specified, using the same image as api-server1
     healthcheck:
