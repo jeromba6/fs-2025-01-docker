@@ -1,7 +1,7 @@
 FROM debian:12.10
 
 RUN apt update; \
-    apt-get install nginx/stable curl/stable openssl/stable  --no-install-recommends -y; \
+    apt-get install nginx/stable curl/stable openssl/stable --no-install-recommends -y; \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /etc/nginx/ssl
