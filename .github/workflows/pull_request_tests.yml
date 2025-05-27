@@ -158,7 +158,7 @@ jobs:
 
   # --- Integration Test Job (now only depends on successful builds) ---
 
-  start_application:
+  integration_test:
     runs-on: ubuntu-latest
     needs: [build_api, build_static, build_proxy] # Only needs the build jobs, as linting is covered upstream
     steps:
@@ -177,12 +177,6 @@ jobs:
               sleep 5
             done
           done
-
-  integration_test:
-    runs-on: ubuntu-latest
-    needs: [start_application] # Only needs the build jobs, as linting is covered upstream
-    steps:
-      - uses: actions/checkout@v3
       - run: |
           echo "Running tests..."
           curl -f https://localhost/health -k || exit 1
