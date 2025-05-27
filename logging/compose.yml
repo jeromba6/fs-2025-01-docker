@@ -10,7 +10,6 @@ services:
       - loki-data:/loki
       - loki-wal:/wal
     command: -config.file=/etc/loki/local-config.yml
-    # entrypoint: sleep 100000
 
   promtail:
     image: grafana/promtail:2.9.4
