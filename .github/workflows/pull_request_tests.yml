@@ -1,8 +1,8 @@
----
 name: Publish Docker image
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+
 permissions:
   contents: read
   packages: write
@@ -13,138 +13,172 @@ permissions:
   checks: write
   deployments: write
   repository-projects: write
+
 jobs:
-  push_to_registry:
-    name: Push Docker image to GitHub Packages
+  set_env:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.11]
-
+    outputs:
+      repo: ${{ steps.setenv.outputs.repo }}
+      release: ${{ steps.setenv.outputs.release }}
     steps:
-      - name: Set releaase
+      - name: Set environment variables
+        id: setenv
         run: |
-          echo "REPO=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
-          echo "RELEASE_VERSION=${{ github.sha }}" >> $GITHUB_ENV
-          cat $GITHUB_ENV
+          echo "repo=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+          echo "release=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
+  # --- Separate Linting Jobs (run before builds) ---
+
+  lint_python:
+    runs-on: ubuntu-latest
+    needs: set_env # Depends on set_env for general workflow flow
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup pylint
+      - name: Set up Python
         uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' # Use '3.x' for latest or specify a version like '3.9'
+      - name: Install Pylint
+        run: pip install pylint
+      - name: Run Pylint on api-server
+        run: pylint api-server
 
-      - name: Pylint
-        run: |
-          pip3 install pylint yamllint
-          pylint api-server
+  lint_yaml:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install Yamllint
+        run: pip install yamllint
+      - name: Run Yamllint
+        run: python3 -m yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
 
-      - name: Yaml linting
-        run: |
-          python3 -m  yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
-
-      - name: Dockerfile linting api-server
+  lint_dockerfile_api:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for api-server Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: api-server/Dockerfile
 
-      - name: Dockerfile linting reverse-proxy
+  lint_dockerfile_proxy:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for reverse-proxy Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: reverse-proxy/Dockerfile
 
-      - name: Dockerfile linting static-webserver
+  lint_dockerfile_static:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for static-webserver Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: static-webserver/Dockerfile
 
-      - name: Docker compose linting
+  lint_docker_compose:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Docker Compose Lint
         uses: sjafferali/docker-compose-lint-action@v0.1.2
         with:
           compose-file: './compose.yml'
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+  # --- Build Jobs (now depend on relevant linting jobs) ---
+
+  build_api:
+    runs-on: ubuntu-latest
+    needs: [set_env, lint_python, lint_yaml, lint_dockerfile_api, lint_docker_compose] # Added linting job dependencies
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push api-server Docker image
-        uses: docker/build-push-action@v3
+      - uses: docker/build-push-action@v3
         with:
           context: api-server
           file: api-server/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/api-server:${{ env.RELEASE_VERSION }}
+          tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ needs.set_env.outputs.release }}
 
-      - name: Build and push static-webserver Docker image
-        uses: docker/build-push-action@v3
+  build_static:
+    runs-on: ubuntu-latest
+    needs: [set_env, lint_yaml, lint_dockerfile_static, lint_docker_compose] # Added linting job dependencies
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
         with:
           context: static-webserver
           file: static-webserver/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/static-webserver:${{ env.RELEASE_VERSION }}
+          tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:${{ needs.set_env.outputs.release }}
 
-      - name: Build and push reverse-proxy Docker image
-        uses: docker/build-push-action@v3
+  build_proxy:
+    runs-on: ubuntu-latest
+    needs: [set_env, lint_yaml, lint_dockerfile_proxy, lint_docker_compose] # Added linting job dependencies
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
         with:
           context: reverse-proxy
           file: reverse-proxy/Dockerfile
           push: true
-          tags: |
-            ghcr.io/${{ github.actor }}/${{ env.REPO }}/reverse-proxy:${{ env.RELEASE_VERSION }}
+          tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ needs.set_env.outputs.release }}
 
-      - name: Test image
-        run: |
-          export VERSION=${{ env.RELEASE_VERSION }}
+  # --- Integration Test Job (now only depends on successful builds) ---
+
+  integration_test:
+    runs-on: ubuntu-latest
+    needs: [build_api, build_static, build_proxy] # Only needs the build jobs, as linting is covered upstream
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          export VERSION=${{ github.sha }}
           docker compose -f compose.yml up -d
-
-      - name: Wait for containers to be healthy
-        run: |
+      - run: |
           echo "Waiting for containers to be healthy..."
-          for i in {1..10}; do
-            if docker inspect --format='{{json .State.Health.Status}}' reverse-proxy | grep -q '"healthy"'; then
-              echo "reverse-proxy is healthy"
-              break
-            fi
-            sleep 5
+          for service in reverse-proxy static-webserver api-server1 api-server2; do
+            for i in {1..10}; do
+              if docker inspect --format='{{json .State.Health.Status}}' $service | grep -q '"healthy"'; then
+                echo "$service is healthy"
+                break
+              fi
+              sleep 5
+            done
           done
-
-          for i in {1..10}; do
-            if docker inspect --format='{{json .State.Health.Status}}' static-webserver | grep -q '"healthy"'; then
-              echo "static-webserver is healthy"
-              break
-            fi
-            sleep 5
-          done
-
-          for i in {1..10}; do
-            if docker inspect --format='{{json .State.Health.Status}}' api-server1 | grep -q '"healthy"'; then
-              echo "api-server1 is healthy"
-              break
-            fi
-            sleep 5
-          done
-
-          for i in {1..10}; do
-            if docker inspect --format='{{json .State.Health.Status}}' api-server2 | grep -q '"healthy"'; then
-              echo "api-server2 is healthy"
-              break
-            fi
-            sleep 5
-          done
-
-      - name: Run tests
-        run: |
+      - run: |
           echo "Running tests..."
-          # Add your test commands here
-          # For example, you can use curl to check if the services are up and running
-          echo "Testing reverse-proxy..."
           curl -f https://localhost/health -k || exit 1
-          echo "Testing api-server..."
           curl -f https://localhost/api/health -k || exit 1
-          echo "Testing static-webserver..."
           curl -f https://localhost -k || exit 1

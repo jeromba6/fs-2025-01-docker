@@ -1,6 +1,5 @@
 # Future Skils Docker
 
-
 **Kestra** - Look in to Kestra for automation
 
 This project demonstrates a multi-container Dockerized application consisting of three main services: a static web server, a reverse proxy, and an API server. The services are orchestrated using Docker Compose and include health checks, SSL support, and a simple HTTP API.
