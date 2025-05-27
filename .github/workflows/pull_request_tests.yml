@@ -101,6 +101,23 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ needs.set_env.outputs.release }}
 
+  build_promtail:
+    runs-on: ubuntu-latest
+    needs: [set_env]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
+        with:
+          context: promtail
+          file: promtail/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/promtail:${{ needs.set_env.outputs.release }}
+
   integration_test:
     runs-on: ubuntu-latest
     needs: [lint, build_api, build_static, build_proxy]
