@@ -60,32 +60,3 @@ services:
       start_period: 5s
     environment:
       PORT: ${API_SERVER2_PORT}
-
-  loki:
-    image: grafana/loki:2.9.4
-    container_name: loki
-    command: -config.file=/etc/loki/local-config.yaml
-
-  promtail:
-    image: ghcr.io/jeromba6/fs-2025-01-docker/promtail:${VERSION}
-    container_name: promtail
-    volumes:
-      - /var/log:/var/log
-      - /etc/machine-id:/etc/machine-id
-      - /etc/hostname:/etc/hostname
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: -config.file=/etc/promtail/config.yaml
-    depends_on:
-      - loki
-
-  grafana:
-    image: grafana/grafana:10.2.3
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      - loki
