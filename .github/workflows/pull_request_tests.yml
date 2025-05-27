@@ -52,7 +52,7 @@ jobs:
 
   build_api:
     runs-on: ubuntu-latest
-    needs: [set_env, lint]
+    needs: [lint]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v3
