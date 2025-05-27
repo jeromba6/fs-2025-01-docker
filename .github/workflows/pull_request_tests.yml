@@ -2,9 +2,6 @@ name: Publish Docker image
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  issue_comment: # New trigger for comments
-    types: [created] # Trigger when a comment is created
-
 
 permissions:
   contents: read
@@ -18,10 +15,6 @@ permissions:
   repository-projects: write
 
 jobs:
-  # This 'if' condition ensures the workflow runs only for PR events or specific comments
-  # It checks if the event is a pull_request OR if it's an issue_comment and the comment body
-  if: github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && contains(lower(github.event.comment.body), 'test this please'))
-
   set_env:
     runs-on: ubuntu-latest
     outputs:
