@@ -1,4 +1,3 @@
-
 name: Publish Docker image
 on:
   pull_request:
@@ -28,31 +27,87 @@ jobs:
           echo "repo=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
           echo "release=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
-  lint:
+  # --- Separate Linting Jobs (run before builds) ---
+
+  lint_python:
+    runs-on: ubuntu-latest
+    needs: set_env # Depends on set_env for general workflow flow
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' # Use '3.x' for latest or specify a version like '3.9'
+      - name: Install Pylint
+        run: pip install pylint
+      - name: Run Pylint on api-server
+        run: pylint api-server
+
+  lint_yaml:
     runs-on: ubuntu-latest
     needs: set_env
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-      - run: pip install pylint yamllint
-      - run: pylint api-server
-      - run: python3 -m yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
-      - uses: hadolint/hadolint-action@v3.1.0
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install Yamllint
+        run: pip install yamllint
+      - name: Run Yamllint
+        run: python3 -m yamllint -d relaxed $(find . -name "*.yml" -o -name "*.yaml")
+
+  lint_dockerfile_api:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for api-server Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: api-server/Dockerfile
-      - uses: hadolint/hadolint-action@v3.1.0
+
+  lint_dockerfile_proxy:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for reverse-proxy Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: reverse-proxy/Dockerfile
-      - uses: hadolint/hadolint-action@v3.1.0
+
+  lint_dockerfile_static:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Hadolint for static-webserver Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: static-webserver/Dockerfile
-      - uses: sjafferali/docker-compose-lint-action@v0.1.2
+
+  lint_docker_compose:
+    runs-on: ubuntu-latest
+    needs: set_env
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Docker Compose Lint
+        uses: sjafferali/docker-compose-lint-action@v0.1.2
         with:
           compose-file: './compose.yml'
 
+  # --- Build Jobs (now depend on relevant linting jobs) ---
+
   build_api:
     runs-on: ubuntu-latest
-    needs: [set_env]
+    needs: [set_env, lint_python, lint_yaml, lint_dockerfile_api, lint_docker_compose] # Added linting job dependencies
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v3
@@ -69,7 +124,7 @@ jobs:
 
   build_static:
     runs-on: ubuntu-latest
-    needs: [set_env]
+    needs: [set_env, lint_yaml, lint_dockerfile_static, lint_docker_compose] # Added linting job dependencies
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v3
@@ -86,7 +141,7 @@ jobs:
 
   build_proxy:
     runs-on: ubuntu-latest
-    needs: [set_env]
+    needs: [set_env, lint_yaml, lint_dockerfile_proxy, lint_docker_compose] # Added linting job dependencies
     steps:
       - uses: actions/checkout@v3
       - uses: docker/login-action@v3
@@ -101,9 +156,11 @@ jobs:
           push: true
           tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ needs.set_env.outputs.release }}
 
+  # --- Integration Test Job (now only depends on successful builds) ---
+
   integration_test:
     runs-on: ubuntu-latest
-    needs: [lint, build_api, build_static, build_proxy]
+    needs: [build_api, build_static, build_proxy] # Only needs the build jobs, as linting is covered upstream
     steps:
       - uses: actions/checkout@v3
       - run: |
