@@ -8,8 +8,8 @@ services:
       - 443:443
     depends_on:
       - static-webserver
-      - api-server1
-      - api-server2
+      - ${API_SERVER1_NAME}
+      - ${API_SERVER2_NAME}
     build:
       context: reverse-proxy
       dockerfile: Dockerfile
@@ -35,7 +35,7 @@ services:
 
   api-server1:
     image: ghcr.io/jeromba6/fs-2025-01-docker/api-server:${VERSION}
-    container_name: api-server1
+    container_name: ${API_SERVER1_NAME}
     build:
       context: api-server
       dockerfile: Dockerfile
@@ -46,11 +46,11 @@ services:
       retries: 2
       start_period: 5s
     environment:
-      PORT: 5001
+      PORT: ${API_SERVER1_PORT}
 
   api-server2:
     image: ghcr.io/jeromba6/fs-2025-01-docker/api-server:${VERSION}
-    container_name: api-server2
+    container_name: ${API_SERVER2_NAME}
     # No build context specified, using the same image as api-server1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
@@ -59,4 +59,4 @@ services:
       retries: 2
       start_period: 5s
     environment:
-      PORT: 5002
+      PORT: ${API_SERVER2_PORT}
