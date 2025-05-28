@@ -37,6 +37,7 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+      packages: write
     outputs:
       tag: ${{ steps.bump_version.outputs.new_tag }}
     steps:
@@ -61,13 +62,13 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Set environment variables
+    - name: Build and push api-server image
       uses: docker/build-push-action@v6
       with:
         context: api-server
         file: api-server/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/api-server:${{ steps.bump_version.outputs.new_tag }}
+        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ steps.bump_version.outputs.new_tag }}
 
   # build_static:
   #   runs-on: ubuntu-latest
