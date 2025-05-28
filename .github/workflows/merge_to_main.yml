@@ -31,7 +31,7 @@ jobs:
           echo "repo=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
           echo "release=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
-  build:
+  build-api-server:
     needs: set_env
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
@@ -56,19 +56,13 @@ jobs:
 
     - name: Output new tag
       uses: actions/checkout@v4
+
     - name: login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: DEBUG
-      run: |
-        echo "Repository: ${{ github.repository }}"
-        echo "Actor: ${{ github.actor }}"
-        echo "New Tag: ${{ steps.bump_version.outputs.new_tag }}"
-        echo "Release: ${{ needs.set_env.outputs.release }}"
-        echo "Repo: ${{ needs.set_env.outputs.repo }}"
 
     - name: Build and push api-server image
       uses: docker/build-push-action@v6
@@ -78,29 +72,87 @@ jobs:
         push: true
         tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ steps.bump_version.outputs.new_tag }}
 
+  build-static-webserver:
+    needs: set_env
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      packages: write
+    outputs:
+      tag: ${{ steps.bump_version.outputs.new_tag }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      id: bump_version
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        TAG_PREFIX: v
+        PRERELEASE: false
+
+    - name: Output new tag
+      uses: actions/checkout@v4
+
+    - name: login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+
     - name: Build and push static-webserver image
       uses: docker/build-push-action@v6
       with:
-          context: static-webserver
-          file: static-webserver/Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:${{ steps.bump_version.outputs.new_tag }}
+        context: static-webserver
+        file: static-webserver/Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:${{ steps.bump_version.outputs.new_tag }}
 
-  # build_proxy:
-  #   runs-on: ubuntu-latest
-  #   needs: [set_env, lint_yaml, lint_dockerfile_proxy, lint_docker_compose] # Added linting job dependencies
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - uses: docker/build-push-action@v3
-  #       with:
-  #         context: reverse-proxy
-  #         file: reverse-proxy/Dockerfile
-  #         push: true
-  #         tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ needs.set_env.outputs.release }}
+  build-reverse-proxy:
+    needs: set_env
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      packages: write
+    outputs:
+      tag: ${{ steps.bump_version.outputs.new_tag }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      id: bump_version
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        TAG_PREFIX: v
+        PRERELEASE: false
+
+    - name: Output new tag
+      uses: actions/checkout@v4
+
+    - name: login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push reverse-proxy image
+      uses: docker/build-push-action@v3
+      with:
+        context: reverse-proxy
+        file: reverse-proxy/Dockerfile
+        push: true
+        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ steps.bump_version.outputs.new_tag }}
 
 
