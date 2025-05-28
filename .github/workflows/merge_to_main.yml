@@ -105,7 +105,6 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-
     - name: Build and push static-webserver image
       uses: docker/build-push-action@v6
       with:
