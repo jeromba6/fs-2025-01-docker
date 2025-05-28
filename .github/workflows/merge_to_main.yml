@@ -8,7 +8,20 @@ on:
       - main
 
 jobs:
+  set_env:
+    runs-on: ubuntu-latest
+    outputs:
+      repo: ${{ steps.setenv.outputs.repo }}
+      release: ${{ steps.setenv.outputs.release }}
+    steps:
+      - name: Set environment variables
+        id: setenv
+        run: |
+          echo "repo=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+          echo "release=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
   build:
+    needs: set_env
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
     permissions:
