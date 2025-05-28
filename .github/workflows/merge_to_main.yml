@@ -69,14 +69,14 @@ jobs:
         echo "New Tag: ${{ steps.bump_version.outputs.new_tag }}"
         echo "Release: ${{ needs.set_env.outputs.release }}"
         echo "Repo: ${{ needs.set_env.outputs.repo }}"
-    
+
     - name: Build and push api-server image
       uses: docker/build-push-action@v6
       with:
         context: api-server
         file: api-server/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ steps.bump_version.outputs.new_tag }}
+        tags: ghcr.io/${{ github.actor }}/api-server:${{ steps.bump_version.outputs.new_tag }}
 
     - name: Build and push static-webserver image
       uses: docker/build-push-action@v3
