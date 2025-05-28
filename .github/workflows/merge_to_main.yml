@@ -70,7 +70,9 @@ jobs:
         context: api-server
         file: api-server/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ steps.bump_version.outputs.new_tag }}
+        tags: |
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:${{ steps.bump_version.outputs.new_tag }}
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/api-server:latest
 
   build-static-webserver:
     needs: set_env
@@ -111,7 +113,9 @@ jobs:
         context: static-webserver
         file: static-webserver/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:${{ steps.bump_version.outputs.new_tag }}
+        tags: |
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:${{ steps.bump_version.outputs.new_tag }}
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/static-webserver:latest
 
   build-reverse-proxy:
     needs: set_env
@@ -152,6 +156,6 @@ jobs:
         context: reverse-proxy
         file: reverse-proxy/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ steps.bump_version.outputs.new_tag }}
-
-
+        tags: |
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:${{ steps.bump_version.outputs.new_tag }}
+          ghcr.io/${{ github.actor }}/${{ needs.set_env.outputs.repo }}/reverse-proxy:latest
