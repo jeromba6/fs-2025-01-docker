@@ -109,13 +109,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [set_env, lint_python, lint_yaml, lint_dockerfile_api, lint_docker_compose] # Added linting job dependencies
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v3
+      - uses: docker/build-push-action@v6
         with:
           context: api-server
           file: api-server/Dockerfile
