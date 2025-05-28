@@ -7,6 +7,17 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  pull-requests: write
+  issues: write
+  statuses: write
+  checks: write
+  deployments: write
+  repository-projects: write
+
 jobs:
   set_env:
     runs-on: ubuntu-latest
