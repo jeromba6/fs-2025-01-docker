@@ -76,10 +76,10 @@ jobs:
         context: api-server
         file: api-server/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.actor }}/api-server:${{ steps.bump_version.outputs.new_tag }}
+        tags: ghcr.io/${{ github.actor }}/${{ steps.bump_version.outputs.new_tag }}/api-server:${{ steps.bump_version.outputs.new_tag }}
 
     - name: Build and push static-webserver image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v6
       with:
           context: static-webserver
           file: static-webserver/Dockerfile
