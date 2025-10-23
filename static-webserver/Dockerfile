@@ -1,7 +1,7 @@
 FROM debian:12.10
 
 RUN apt-get update; \
-    apt-get install nginx/stable curl/stable --no-install-recommends -y; \
+    apt-get install nginx/oldstable curl/oldstable --no-install-recommends -y; \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
