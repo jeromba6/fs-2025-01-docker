@@ -2,7 +2,7 @@ FROM debian:12.10
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install python3/stable curl/stable --no-install-recommends -y && \
+    apt-get install python3 curl --no-install-recommends -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 COPY application /
